@@ -5,6 +5,65 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .upload { margin: 20px 0; padding: 20px; border: 2px dashed #ccc; border-radius: 5px; }
+
+        /* Filter Section Styles */
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            font-size: 12px;
+            color: #495057;
+            text-transform: uppercase;
+        }
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,.25);
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-filter {
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-filter:hover {
+            background: #545b62;
+        }
+        .btn-filter.active {
+            background: #007bff;
+        }
+
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #f8f9fa; font-weight: bold; }
@@ -17,9 +76,33 @@
         .alert { padding: 15px; margin: 10px 0; border-radius: 4px; }
         .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .info { margin: 20px 0; }
+        .info { margin: 20px 0; display: flex; justify-content: space-between; align-items: center; }
         .date { white-space: nowrap; }
         .information { max-width: 400px; word-wrap: break-word; }
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                width: 100%;
+            }
+            .info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -41,15 +124,67 @@
     </form>
 </div>
 
+{% if logs|length > 0 %}
+    <div class="filters">
+        <h3>Filters</h3>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Search in information...">
+            </div>
+
+            <div class="filter-group">
+                <label>Channel</label>
+                <select id="channelFilter" class="filter-input">
+                    <option value="">All Channels</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Date From</label>
+                <input type="date" id="dateFromFilter" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+                <label>Date To</label>
+                <input type="date" id="dateToFilter" class="filter-input">
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Log Types</label>
+                <div class="filter-buttons">
+                    <button type="button" class="btn-filter active" data-type="all">All</button>
+                    <button type="button" class="btn-filter" data-type="INFO">INFO</button>
+                    <button type="button" class="btn-filter" data-type="DEBUG">DEBUG</button>
+                    <button type="button" class="btn-filter" data-type="ERROR">ERROR</button>
+                    <button type="button" class="btn-filter" data-type="WARNING">WARNING</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-buttons">
+            <button type="button" id="clearFilters" class="btn-filter">Clear All Filters</button>
+        </div>
+    </div>
+{% endif %}
+
 <div class="info">
-    <form action="{{ path('log_clear') }}" method="post" style="display: inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Clear all logs?')">Clear All</button>
-    </form>
-    <strong>Total Logs: {{ logs|length }}</strong>
+    <div>
+        <form action="{{ path('log_clear') }}" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Clear all logs?')">Clear All</button>
+        </form>
+    </div>
+    <div class="stats">
+        <strong>Total Logs: <span id="totalLogs">{{ logs|length }}</span></strong>
+        <strong>Visible Logs: <span id="visibleLogs">{{ logs|length }}</span></strong>
+    </div>
 </div>
 
 {% if logs|length > 0 %}
-    <table>
+    <table id="logTable">
         <thead>
         <tr>
             <th>Date</th>
@@ -60,7 +195,7 @@
         </thead>
         <tbody>
         {% for log in logs %}
-            <tr class="type-{{ log.type }}">
+            <tr class="type-{{ log.type }}" data-type="{{ log.type }}" data-channel="{{ log.channel }}" data-date="{{ log.date|date('Y-m-d') }}" data-datetime="{{ log.date|date('Y-m-d H:i:s') }}">
                 <td class="date">{{ log.date|date('Y-m-d H:i:s') }}</td>
                 <td>{{ log.channel }}</td>
                 <td>{{ log.type }}</td>
@@ -69,6 +204,161 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const channelFilter = document.getElementById('channelFilter');
+            const dateFromFilter = document.getElementById('dateFromFilter');
+            const dateToFilter = document.getElementById('dateToFilter');
+            const typeButtons = document.querySelectorAll('.btn-filter[data-type]');
+            const clearFiltersBtn = document.getElementById('clearFilters');
+            const logRows = document.querySelectorAll('#logTable tbody tr');
+            const totalLogsSpan = document.getElementById('totalLogs');
+            const visibleLogsSpan = document.getElementById('visibleLogs');
+
+            let currentFilters = {
+                search: '',
+                channel: '',
+                dateFrom: '',
+                dateTo: '',
+                type: 'all'
+            };
+
+            // Populate channel filter options
+            function populateChannelFilter() {
+                const channels = new Set();
+                logRows.forEach(row => {
+                    channels.add(row.dataset.channel);
+                });
+
+                channels.forEach(channel => {
+                    const option = document.createElement('option');
+                    option.value = channel;
+                    option.textContent = channel;
+                    channelFilter.appendChild(option);
+                });
+            }
+
+            // Filter logs based on current filters
+            function filterLogs() {
+                let visibleCount = 0;
+
+                logRows.forEach(row => {
+                    let show = true;
+
+                    // Search filter
+                    if (currentFilters.search) {
+                        const information = row.querySelector('.information').textContent.toLowerCase();
+                        if (!information.includes(currentFilters.search.toLowerCase())) {
+                            show = false;
+                        }
+                    }
+
+                    // Channel filter
+                    if (currentFilters.channel && row.dataset.channel !== currentFilters.channel) {
+                        show = false;
+                    }
+
+                    // Type filter
+                    if (currentFilters.type !== 'all' && row.dataset.type !== currentFilters.type) {
+                        show = false;
+                    }
+
+                    // Date filters
+                    if (currentFilters.dateFrom) {
+                        const rowDate = new Date(row.dataset.datetime);
+                        const filterDate = new Date(currentFilters.dateFrom);
+                        if (rowDate < filterDate) {
+                            show = false;
+                        }
+                    }
+
+                    if (currentFilters.dateTo) {
+                        const rowDate = new Date(row.dataset.datetime);
+                        const filterDate = new Date(currentFilters.dateTo);
+                        filterDate.setHours(23, 59, 59, 999); // End of day
+                        if (rowDate > filterDate) {
+                            show = false;
+                        }
+                    }
+
+                    if (show) {
+                        row.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+
+                visibleLogsSpan.textContent = visibleCount;
+            }
+
+            // Event listeners
+            searchInput.addEventListener('input', function() {
+                currentFilters.search = this.value;
+                filterLogs();
+            });
+
+            channelFilter.addEventListener('change', function() {
+                currentFilters.channel = this.value;
+                filterLogs();
+            });
+
+            dateFromFilter.addEventListener('change', function() {
+                currentFilters.dateFrom = this.value;
+                filterLogs();
+            });
+
+            dateToFilter.addEventListener('change', function() {
+                currentFilters.dateTo = this.value;
+                filterLogs();
+            });
+
+            typeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    typeButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    // Update filter
+                    currentFilters.type = this.dataset.type;
+                    filterLogs();
+                });
+            });
+
+            clearFiltersBtn.addEventListener('click', function() {
+                // Reset all filters
+                currentFilters = {
+                    search: '',
+                    channel: '',
+                    dateFrom: '',
+                    dateTo: '',
+                    type: 'all'
+                };
+
+                // Reset form elements
+                searchInput.value = '';
+                channelFilter.value = '';
+                dateFromFilter.value = '';
+                dateToFilter.value = '';
+
+                // Reset type buttons
+                typeButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.type === 'all') {
+                        btn.classList.add('active');
+                    }
+                });
+
+                // Show all rows
+                filterLogs();
+            });
+
+            // Initialize
+            populateChannelFilter();
+        });
+    </script>
 {% else %}
     <p>No logs found. Upload a log file to get started.</p>
 {% endif %}
