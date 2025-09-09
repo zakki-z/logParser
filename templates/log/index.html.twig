@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LogChannels</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .upload { margin: 20px 0; padding: 20px; border: 2px dashed #ccc; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        .type-INFO { background-color: #d4edda; }
+        .type-DEBUG { background-color: #f8f9fa; }
+        .type-ERROR { background-color: #f8d7da; }
+        .type-WARNING { background-color: #fff3cd; }
+        .btn { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; text-decoration: none; display: inline-block; border-radius: 3px; }
+        .btn-danger { background: #dc3545; }
+        .alert { padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { margin: 20px 0; }
+        .date { white-space: nowrap; }
+        .information { max-width: 400px; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+<h1>LogChannels</h1>
+
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ type == 'error' ? 'error' : 'success' }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<div class="upload">
+    <h3>Upload Log File</h3>
+    <form action="{{ path('log_upload') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="logfile" accept=".log,.txt" required>
+        <button type="submit" class="btn">Upload & Parse</button>
+    </form>
+</div>
+
+<div class="info">
+    <form action="{{ path('log_clear') }}" method="post" style="display: inline;">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Clear all logs?')">Clear All</button>
+    </form>
+    <strong>Total Logs: {{ logs|length }}</strong>
+</div>
+
+{% if logs|length > 0 %}
+    <table>
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Channel</th>
+            <th>Type</th>
+            <th>Information</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+            <tr class="type-{{ log.type }}">
+                <td class="date">{{ log.date|date('Y-m-d H:i:s') }}</td>
+                <td>{{ log.channel }}</td>
+                <td>{{ log.type }}</td>
+                <td class="information">{{ log.information }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No logs found. Upload a log file to get started.</p>
+{% endif %}
+</body>
+</html>
