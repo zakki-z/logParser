@@ -36,4 +36,25 @@ class LogEntryRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    public function findByFileHash(string $fileHash): ?array
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.file_hash = :hash')
+            ->setParameter('hash', $fileHash)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getUploadedFiles(): array
+    {
+        return $this->createQueryBuilder('l')
+            ->select('DISTINCT l.filename, l.file_hash, l.uploaded_at, l.file_size')
+            ->addSelect('COUNT(l.id) as entry_count')
+            ->groupBy('l.file_hash, l.filename, l.uploaded_at, l.file_size')
+            ->orderBy('l.uploaded_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

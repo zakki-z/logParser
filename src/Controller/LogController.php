@@ -17,9 +17,11 @@ class LogController extends AbstractController
     public function index(LogEntryRepository $logRepository): Response
     {
         $logs = $logRepository->findAllOrdered();
+        $uploadedFiles = $logRepository->getUploadedFiles();
 
         return $this->render('log/index.html.twig', [
             'logs' => $logs,
+            'uploadedFiles' => $uploadedFiles,
         ]);
     }
 
@@ -30,13 +32,19 @@ class LogController extends AbstractController
         $uploadedFile = $request->files->get('logfile');
 
         if ($uploadedFile && $uploadedFile->getError() === UPLOAD_ERR_OK) {
-            $tempPath = $uploadedFile->getPathname();
-
             try {
-                $parsedEntries = $logParser->parseLogFile($tempPath);
-                $logParser->saveLogEntries($parsedEntries);
+                $result = $logParser->parseLogFile(
+                    $uploadedFile->getPathname(),
+                    $uploadedFile->getClientOriginalName()
+                );
 
-                $this->addFlash('success', count($parsedEntries) . ' logs parsed successfully!');
+                if ($result['status'] === 'duplicate') {
+                    $this->addFlash('warning', $result['message']);
+                } else {
+                    $logParser->saveLogEntries($result['entries']);
+                    $this->addFlash('success', $result['message']);
+                }
+
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error parsing file: ' . $e->getMessage());
             }
