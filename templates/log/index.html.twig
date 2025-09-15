@@ -114,8 +114,14 @@
     </style>
 </head>
 <body>
-<h1>LogChannels</h1>
-
+<div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:20px;">
+    <h1>LogChannels</h1>
+    {% if app.user %}
+        <form action="{{ path('app_logout') }}" method="post" style="margin:0;">
+            <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
+    {% endif %}
+</div>
 {% for type, messages in app.flashes %}
     {% for message in messages %}
         <div class="alert alert-{{ type == 'error' ? 'error' : (type == 'warning' ? 'warning' : 'success') }}">
