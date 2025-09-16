@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FileRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FileRepository::class)]
@@ -15,7 +16,7 @@ class File
 
     #[ORM\Column(length: 255)]
     private ?string $fileName = null;
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $uploaded_at = null;
 
     #[ORM\Column]

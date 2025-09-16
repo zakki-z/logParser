@@ -50,6 +50,7 @@ class LogEntryRepository extends ServiceEntityRepository
             ->leftJoin('l.file', 'f')
             ->where('f.user = :userId')
             ->setParameter('userId', $userId)
+            ->orderBy('l.date', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -85,31 +86,45 @@ class LogEntryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all log entries ordered by date (newest first)
+     * Find all log entries ordered by date (newest first) for current user
      */
-    public function findAllOrdered(): array
+    public function findAllOrdered(?int $userId = null): array
     {
-        return $this->findBy([], ['date' => 'DESC']);
+        $qb = $this->createQueryBuilder('l')
+            ->leftJoin('l.file', 'f')
+            ->orderBy('l.date', 'DESC');
+
+        if ($userId) {
+            $qb->where('f.user = :userId')
+                ->setParameter('userId', $userId);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * Get unique uploaded files with their log entry counts
+     * Get unique uploaded files with their log entry counts for current user
      */
-    public function getUploadedFiles(): array
+    public function getUploadedFiles(?int $userId = null): array
     {
-        // Get all files from the File repository instead
         $fileRepository = $this->getEntityManager()->getRepository(\App\Entity\File::class);
-        $files = $fileRepository->findBy([], ['uploaded_at' => 'DESC']); // Use the actual property name
+
+        $criteria = [];
+        if ($userId) {
+            $criteria['user'] = $userId;
+        }
+
+        $files = $fileRepository->findBy($criteria, ['uploaded_at' => 'DESC']);
 
         $result = [];
         foreach ($files as $file) {
             $logEntries = $this->findBy(['file' => $file], ['date' => 'DESC']);
             $result[] = [
                 'id' => $file->getId(),
-                'fileName' => $file->getFileName(),
-                'uploadedAt' => $file->getUploadedAt(),
-                'fileSize' => $file->getFileSize(),
-                'logCount' => count($logEntries),
+                'filename' => $file->getFileName(),
+                'uploaded_at' => $file->getUploadedAt(),
+                'file_size' => $file->getFileSize(),
+                'entry_count' => count($logEntries),
                 'logEntries' => $logEntries
             ];
         }
@@ -127,17 +142,6 @@ class LogEntryRepository extends ServiceEntityRepository
             ->leftJoin('l.file', 'f')
             ->where('f.user = :userId')
             ->setParameter('userId', $userId)
-            ->getQuery()
-            ->execute();
-    }
-
-    /**
-     * Clear all log entries (admin function)
-     */
-    public function clearAll(): void
-    {
-        $this->createQueryBuilder('l')
-            ->delete()
             ->getQuery()
             ->execute();
     }

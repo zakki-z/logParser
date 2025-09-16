@@ -18,8 +18,9 @@ class LogController extends AbstractController
     #[Route('/', name: 'log_index')]
     public function index(LogEntryRepository $logRepository): Response
     {
-        $logs = $logRepository->findAllOrdered();
-        $uploadedFiles = $logRepository->getUploadedFiles();
+        $user = $this->getUser();
+        $logs = $logRepository->findAllOrdered($user->getId());
+        $uploadedFiles = $logRepository->getUploadedFiles($user->getId());
 
         return $this->render('log/index.html.twig', [
             'logs' => $logs,

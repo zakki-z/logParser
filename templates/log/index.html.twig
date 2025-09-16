@@ -122,6 +122,7 @@
         </form>
     {% endif %}
 </div>
+
 {% for type, messages in app.flashes %}
     {% for message in messages %}
         <div class="alert alert-{{ type == 'error' ? 'error' : (type == 'warning' ? 'warning' : 'success') }}">
@@ -237,14 +238,14 @@
         </thead>
         <tbody>
         {% for log in logs %}
-            <tr class="type-{{ log.type }}" data-type="{{ log.type }}" data-channel="{{ log.channel }}" data-filename="{{ log.filename }}" data-date="{{ log.date|date('Y-m-d') }}" data-datetime="{{ log.date|date('Y-m-d H:i:s') }}">
+            <tr class="type-{{ log.type }}" data-type="{{ log.type }}" data-channel="{{ log.channel }}" data-filename="{{ log.file.fileName }}" data-date="{{ log.date|date('Y-m-d') }}" data-datetime="{{ log.date|date('Y-m-d H:i:s') }}">
                 <td class="date">{{ log.date|date('Y-m-d H:i:s') }}</td>
                 <td>{{ log.channel }}</td>
                 <td>{{ log.type }}</td>
                 <td class="information">{{ log.information }}</td>
                 <td>
-                    <small>{{ log.filename }}</small><br>
-                    <small style="color: #666;">{{ log.uploadedAt|date('d/m/Y H:i') }}</small>
+                    <small>{{ log.file.fileName }}</small><br>
+                    <small style="color: #666;">{{ log.file.uploadedAt|date('d/m/Y H:i') }}</small>
                 </td>
             </tr>
         {% endfor %}
@@ -361,6 +362,8 @@
 
                 visibleLogsSpan.textContent = visibleCount;
             }
+
+            // Event listeners
             searchInput.addEventListener('input', function() {
                 currentFilters.search = this.value;
                 filterLogs();
@@ -404,7 +407,6 @@
                     search: '',
                     channel: '',
                     filename: '',
-                    dateFrom: '',
                     dateTo: '',
                     type: 'all'
                 };
