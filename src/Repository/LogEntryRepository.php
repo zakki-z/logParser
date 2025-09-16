@@ -16,9 +16,6 @@ class LogEntryRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, LogEntry::class);
     }
-    /**
-     * Find all log entries ordered by date (newest first) for current user
-     */
     public function findAllOrdered(?Uuid $userId = null): array
     {
         $qb = $this->createQueryBuilder('l')
@@ -32,10 +29,6 @@ class LogEntryRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
-
-    /**
-     * Get unique uploaded files with their log entry counts for current user
-     */
     public function getUploadedFiles(?Uuid $userId = null): array
     {
         $fileRepository = $this->getEntityManager()->getRepository(\App\Entity\File::class);
@@ -62,15 +55,9 @@ class LogEntryRepository extends ServiceEntityRepository
 
         return $result;
     }
-
-    /**
-     * Clear all log entries for a specific user
-     */
-    /**
-     * Clear all log entries for a specific user
-     */
     public function clearAllByUser(Uuid $userId): void
     {
+
         $this->createQueryBuilder('l')
             ->delete()
             ->where('l.file IN (

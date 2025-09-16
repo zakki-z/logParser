@@ -23,12 +23,12 @@ class LogController extends AbstractController
         $logs = $logRepository->findAllOrdered($user->getId());
         $uploadedFiles = $logRepository->getUploadedFiles($user->getId());
 
+
         return $this->render('log/index.html.twig', [
             'logs' => $logs,
-            'uploadedFiles' => $uploadedFiles,
+            'uploadedFiles' => $uploadedFiles
         ]);
     }
-
     #[Route('/upload', name: 'log_upload', methods: ['POST'])]
     public function upload(Request $request, ParsingService $logParser, SavingService $saveLog): Response
     {
@@ -66,9 +66,8 @@ class LogController extends AbstractController
     #[Route('/clear', name: 'log_clear', methods: ['POST'])]
     public function clear(LogEntryRepository $logRepository): Response
     {
-        // clear the logs for the current user
-        $user = $this->getUser();
-        $logRepository->clearAllByUser($user->getId());
+        $file = $this->getUser();
+        $logRepository->clearAllByUser($file->getId());
         $this->addFlash('success', 'All your logs cleared');
 
         return $this->redirectToRoute('log_index');
