@@ -66,12 +66,16 @@ class LogEntryRepository extends ServiceEntityRepository
     /**
      * Clear all log entries for a specific user
      */
-    public function clearAllByUser(int $userId): void
+    /**
+     * Clear all log entries for a specific user
+     */
+    public function clearAllByUser(Uuid $userId): void
     {
         $this->createQueryBuilder('l')
             ->delete()
-            ->leftJoin('l.file', 'f')
-            ->where('f.user = :userId')
+            ->where('l.file IN (
+            SELECT f.id FROM App\Entity\File f WHERE f.user = :userId
+        )')
             ->setParameter('userId', $userId)
             ->getQuery()
             ->execute();

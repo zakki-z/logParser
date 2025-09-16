@@ -6,18 +6,14 @@ use App\Entity\File;
 use App\Entity\LogEntry;
 use App\Entity\User;
 use App\Repository\FileRepository;
-use App\Repository\LogEntryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class LogParserService
+class ParsingService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private LogEntryRepository $logRepository,
         private FileRepository $fileRepository
-    ) {
-    }
-
+    ){}
     public function parseLogFile(string $filePath, string $originalFilename, User $user): array
     {
         $fileSize = filesize($filePath);
@@ -80,13 +76,5 @@ class LogParserService
             'entries' => $parsedEntries,
             'file' => $file
         ];
-    }
-
-    public function saveLogEntries(array $logEntries): void
-    {
-        foreach ($logEntries as $logEntry) {
-            $this->entityManager->persist($logEntry);
-        }
-        $this->entityManager->flush();
     }
 }

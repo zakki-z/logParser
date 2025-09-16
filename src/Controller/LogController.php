@@ -3,7 +3,8 @@
 namespace App\Controller;
 
 use App\Repository\LogEntryRepository;
-use App\Service\LogParserService;
+use App\Service\SavingService;
+use App\Service\ParsingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +30,7 @@ class LogController extends AbstractController
     }
 
     #[Route('/upload', name: 'log_upload', methods: ['POST'])]
-    public function upload(Request $request, LogParserService $logParser): Response
+    public function upload(Request $request, ParsingService $logParser, SavingService $saveLog): Response
     {
         /** @var UploadedFile $uploadedFile */
         $uploadedFile = $request->files->get('logfile');
@@ -48,7 +49,7 @@ class LogController extends AbstractController
                 if ($result['status'] === 'duplicate') {
                     $this->addFlash('warning', $result['message']);
                 } else {
-                    $logParser->saveLogEntries($result['entries']);
+                    $saveLog->saveLogEntries($result['entries']);
                     $this->addFlash('success', $result['message']);
                 }
 
