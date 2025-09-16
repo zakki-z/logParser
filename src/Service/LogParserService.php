@@ -2,7 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\File;
 use App\Entity\LogEntry;
+use App\Entity\User;
+use App\Repository\FileRepository;
 use App\Repository\LogEntryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -10,18 +13,23 @@ class LogParserService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private LogEntryRepository $logRepository
+        private LogEntryRepository $logRepository,
+        private FileRepository $fileRepository
     ) {
     }
 
-    public function parseLogFile(string $filePath, string $originalFilename): array
+    public function parseLogFile(string $filePath, string $originalFilename, User $user): array
     {
-        $fileHash = hash_file('sha256', $filePath);
         $fileSize = filesize($filePath);
 
-        $existingFile = $this->logRepository->findByFileHash($fileHash);
-        if (!empty($existingFile)) {
-            $uploadDate = $existingFile[0]->getUploadedAt()->format('d/m/Y H:i:s');
+        // Check if file already exists for this user
+        $existingFile = $this->fileRepository->findOneBy([
+            'fileName' => $originalFilename,
+            'user' => $user
+        ]);
+
+        if ($existingFile) {
+            $uploadDate = $existingFile->getUploadedAt()->format('d/m/Y H:i:s');
             return [
                 'status' => 'duplicate',
                 'message' => "File '{$originalFilename}' was already uploaded on {$uploadDate}",
@@ -29,11 +37,21 @@ class LogParserService
             ];
         }
 
+        // Create new File entity
+        $file = new File();
+        $file->setFileName($originalFilename);
+        $file->setUploadedAt(new \DateTimeImmutable());
+        $file->setFileSize($fileSize);
+        $file->setUser($user);
+
+        // Persist the file first to get an ID
+        $this->entityManager->persist($file);
+        $this->entityManager->flush();
+
         $content = file_get_contents($filePath);
         $lines = explode("\n", $content);
 
         $parsedEntries = [];
-        $uploadedAt = new \DateTime();
 
         foreach ($lines as $line) {
             $line = trim($line);
@@ -54,11 +72,7 @@ class LogParserService
                 $logEntry->setChannel($matches[2]);
                 $logEntry->setType($matches[3]);
                 $logEntry->setInformation($matches[4]);
-                $logEntry->setFilename($originalFilename);
-                $logEntry->setFolderName('uploads');
-                $logEntry->setFileHash($fileHash);
-                $logEntry->setUploadedAt($uploadedAt);
-                $logEntry->setFileSize($fileSize);
+                $logEntry->setFile($file); // Associate with the created file
 
                 $parsedEntries[] = $logEntry;
             }
@@ -67,7 +81,8 @@ class LogParserService
         return [
             'status' => 'success',
             'message' => count($parsedEntries) . ' entries parsed successfully',
-            'entries' => $parsedEntries
+            'entries' => $parsedEntries,
+            'file' => $file
         ];
     }
 

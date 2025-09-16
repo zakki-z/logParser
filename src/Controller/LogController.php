@@ -9,8 +9,10 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/log')]
+#[IsGranted('ROLE_USER')]
 class LogController extends AbstractController
 {
     #[Route('/', name: 'log_index')]
@@ -33,9 +35,13 @@ class LogController extends AbstractController
 
         if ($uploadedFile && $uploadedFile->getError() === UPLOAD_ERR_OK) {
             try {
+                // Get the current authenticated user
+                $user = $this->getUser();
+
                 $result = $logParser->parseLogFile(
                     $uploadedFile->getPathname(),
-                    $uploadedFile->getClientOriginalName()
+                    $uploadedFile->getClientOriginalName(),
+                    $user  // Pass the user to the service
                 );
 
                 if ($result['status'] === 'duplicate') {
@@ -58,8 +64,10 @@ class LogController extends AbstractController
     #[Route('/clear', name: 'log_clear', methods: ['POST'])]
     public function clear(LogEntryRepository $logRepository): Response
     {
-        $logRepository->clearAll();
-        $this->addFlash('success', 'All logs cleared');
+        // Clear only logs for the current user
+        $user = $this->getUser();
+        $logRepository->clearAllByUser($user->getId());
+        $this->addFlash('success', 'All your logs cleared');
 
         return $this->redirectToRoute('log_index');
     }

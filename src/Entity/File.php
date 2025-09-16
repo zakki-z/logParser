@@ -20,6 +20,9 @@ class File
 
     #[ORM\Column]
     private ?int $file_size = null;
+    #[ORM\ManyToOne(targetEntity: User::class, fetch: 'LAZY', inversedBy: 'file')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user= null;
 
     public function getId(): ?int
     {
@@ -58,6 +61,15 @@ class File
     {
         $this->file_size = $file_size;
 
+        return $this;
+    }
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 }
