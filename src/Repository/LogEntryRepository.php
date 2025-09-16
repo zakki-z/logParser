@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\LogEntry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends ServiceEntityRepository<LogEntry>
@@ -15,80 +16,10 @@ class LogEntryRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, LogEntry::class);
     }
-
-    /**
-     * Find log entries by file name (through the associated File entity)
-     */
-    public function findByFileName(string $fileName): array
-    {
-        return $this->createQueryBuilder('l')
-            ->leftJoin('l.file', 'f')
-            ->where('f.fileName = :fileName')
-            ->setParameter('fileName', $fileName)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Find log entries by file ID
-     */
-    public function findByFileId(int $fileId): array
-    {
-        return $this->createQueryBuilder('l')
-            ->where('l.file = :fileId')
-            ->setParameter('fileId', $fileId)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Find log entries by user (through the associated File entity)
-     */
-    public function findByUser(int $userId): array
-    {
-        return $this->createQueryBuilder('l')
-            ->leftJoin('l.file', 'f')
-            ->where('f.user = :userId')
-            ->setParameter('userId', $userId)
-            ->orderBy('l.date', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Find log entries by channel
-     */
-    public function findByChannel(string $channel): array
-    {
-        return $this->findBy(['channel' => $channel]);
-    }
-
-    /**
-     * Find log entries by type
-     */
-    public function findByType(string $type): array
-    {
-        return $this->findBy(['type' => $type]);
-    }
-
-    /**
-     * Find log entries within a date range
-     */
-    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
-    {
-        return $this->createQueryBuilder('l')
-            ->where('l.date BETWEEN :startDate AND :endDate')
-            ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate)
-            ->orderBy('l.date', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
     /**
      * Find all log entries ordered by date (newest first) for current user
      */
-    public function findAllOrdered(?int $userId = null): array
+    public function findAllOrdered(?Uuid $userId = null): array
     {
         $qb = $this->createQueryBuilder('l')
             ->leftJoin('l.file', 'f')
@@ -105,7 +36,7 @@ class LogEntryRepository extends ServiceEntityRepository
     /**
      * Get unique uploaded files with their log entry counts for current user
      */
-    public function getUploadedFiles(?int $userId = null): array
+    public function getUploadedFiles(?Uuid $userId = null): array
     {
         $fileRepository = $this->getEntityManager()->getRepository(\App\Entity\File::class);
 

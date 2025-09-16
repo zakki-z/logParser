@@ -36,13 +36,13 @@ class LogController extends AbstractController
 
         if ($uploadedFile && $uploadedFile->getError() === UPLOAD_ERR_OK) {
             try {
-                // Get the current authenticated user
+
                 $user = $this->getUser();
 
                 $result = $logParser->parseLogFile(
                     $uploadedFile->getPathname(),
                     $uploadedFile->getClientOriginalName(),
-                    $user  // Pass the user to the service
+                    $user
                 );
 
                 if ($result['status'] === 'duplicate') {
@@ -65,7 +65,7 @@ class LogController extends AbstractController
     #[Route('/clear', name: 'log_clear', methods: ['POST'])]
     public function clear(LogEntryRepository $logRepository): Response
     {
-        // Clear only logs for the current user
+        // clear the logs for the current user
         $user = $this->getUser();
         $logRepository->clearAllByUser($user->getId());
         $this->addFlash('success', 'All your logs cleared');

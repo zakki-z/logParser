@@ -21,8 +21,6 @@ class LogParserService
     public function parseLogFile(string $filePath, string $originalFilename, User $user): array
     {
         $fileSize = filesize($filePath);
-
-        // Check if file already exists for this user
         $existingFile = $this->fileRepository->findOneBy([
             'fileName' => $originalFilename,
             'user' => $user
@@ -36,8 +34,6 @@ class LogParserService
                 'entries' => []
             ];
         }
-
-        // Create new File entity
         $file = new File();
         $file->setFileName($originalFilename);
         $file->setUploadedAt(new \DateTimeImmutable());
@@ -72,7 +68,7 @@ class LogParserService
                 $logEntry->setChannel($matches[2]);
                 $logEntry->setType($matches[3]);
                 $logEntry->setInformation($matches[4]);
-                $logEntry->setFile($file); // Associate with the created file
+                $logEntry->setFile($file);
 
                 $parsedEntries[] = $logEntry;
             }
