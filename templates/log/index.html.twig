@@ -142,15 +142,15 @@
 {% if uploadedFiles|length > 0 %}
     <div class="files-section">
         <h3>Previously Uploaded Files</h3>
-        {% for file in uploadedFiles %}
+        {% for fileHistory in uploadedFiles %}
             <div class="file-item">
                 <div class="file-meta">
                     <div>
-                        <div class="file-name">{{ file.filename }}</div>
+                        <div class="file-name">{{ fileHistory.filename }}</div>
                         <div class="file-details">
-                            Uploaded: {{ file.uploaded_at|date('d/m/Y H:i:s') }} |
-                            Entries: {{ file.entry_count }} |
-                            <span class="file-size">{{ (file.file_size / 1024)|number_format(1) }} KB</span>
+                            Uploaded: {{ fileHistory.uploaded_at|date('d/m/Y H:i:s') }} |
+                            Entries: {{ fileHistory.entry_count }} |
+                            <span class="file-size">{{ (fileHistory.file_size / 1024)|number_format(1) }} KB</span>
                         </div>
                     </div>
                 </div>
