@@ -32,6 +32,7 @@ class ParsingService
         }
         $file = new File();
         $file->setFileName($originalFilename);
+        $file->setFileNameTime(time().'.'.$originalFilename);
         $file->setUploadedAt(new \DateTimeImmutable());
         $file->setFileSize($fileSize);
         $file->setUser($user);

@@ -13,13 +13,18 @@ use Symfony\Component\Uid\Uuid;
 class File
 {
     #[ORM\Id]
-    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[ORM\Column(type: UuidType::NAME)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator('doctrine.uuid_generator')]
     private ?Uuid $id = null;
 
+
     #[ORM\Column(length: 255)]
     private ?string $fileName = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $fileNameTime = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $uploaded_at = null;
 
@@ -43,6 +48,15 @@ class File
     {
         $this->fileName = $fileName;
 
+        return $this;
+    }
+    public function getFileNameTime(): ?string
+    {
+        return $this->fileNameTime;
+    }
+    public function setFileNameTime(string $fileNameTime): static
+    {
+        $this->fileNameTime = $fileNameTime;
         return $this;
     }
     public function getUploadedAt(): ?\DateTimeImmutable

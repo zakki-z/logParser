@@ -46,6 +46,7 @@ class LogEntryRepository extends ServiceEntityRepository
             $result[] = [
                 'id' => $file->getId(),
                 'filename' => $file->getFileName(),
+                'file_name_time' => $file->getFileNameTime(),
                 'uploaded_at' => $file->getUploadedAt(),
                 'file_size' => $file->getFileSize(),
                 'entry_count' => count($logEntries),
