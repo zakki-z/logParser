@@ -1,0 +1,57 @@
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker related
+.docker/
+docker-compose.override.yml
+.env.docker
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+cache/
+
+# Node modules (if you use frontend tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+build/
+dist/
+
+# Database files
+*.sqlite
+*.db
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Archives
+*.tar
+*.zip
+*.gz
+*.rar
+
+# Local environment configuration
+.env.local
+.env.*.local
