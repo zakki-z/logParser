@@ -45,13 +45,8 @@ class LogController extends AbstractController
                     $uploadedFile->getClientOriginalName(),
                     $user
                 );
-
-                if ($result['status'] === 'duplicate') {
-                    $this->addFlash('warning', $result['message']);
-                } else {
                     $saveLog->saveLogEntries($result['entries']);
                     $this->addFlash('success', $result['message']);
-                }
 
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error parsing file: ' . $e->getMessage());
@@ -62,7 +57,6 @@ class LogController extends AbstractController
 
         return $this->redirectToRoute('log_index');
     }
-
     #[Route('/clear', name: 'log_clear', methods: ['POST'])]
     public function clear(LogEntryRepository $logRepository): Response
     {

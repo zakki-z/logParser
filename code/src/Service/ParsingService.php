@@ -21,15 +21,6 @@ class ParsingService
             'fileName' => $originalFilename,
             'user' => $user
         ]);
-
-        if ($existingFile) {
-            $uploadDate = $existingFile->getUploadedAt()->format('d/m/Y H:i:s');
-            return [
-                'status' => 'duplicate',
-                'message' => "File '{$originalFilename}' was already uploaded on {$uploadDate}",
-                'entries' => []
-            ];
-        }
         $file = new File();
         $file->setFileName($originalFilename);
         $file->setFileNameTime(time().'.'.$originalFilename);
