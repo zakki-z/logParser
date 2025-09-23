@@ -1,74 +1,73 @@
 services:
-    nginx:
-      image: nginx-nginx:latest
-      build:
-        context: ./infra/
-        args:
-          BUILD_ARGUMENT_ENV: dev
-        dockerfile: ./nginx/Dockerfile
-      restart: always
-      ports:
-        - "80:80"
-        - "443:443"
-      volumes:
-        - ./code:/var/www/html:ro,cached
-        - ./infra/nginx/conf.d:/etc/nginx/conf.d
-      depends_on:
-        - symfony
-      networks:
-        - symfony
+  nginx:
+    image: nginx-nginx:latest
+    build:
+      context: ./infra/
+      args:
+        BUILD_ARGUMENT_ENV: dev
+      dockerfile: ./nginx/Dockerfile
+    restart: always
+    ports:
+      - "8000:80"
+      - "8001:443"
+    volumes:
+      - ./code:/var/www/html:ro,cached
+      - ./infra/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - symfony
+    networks:
+      - symfony
 
-    symfony:
-      image: php-symfony:latest
-      build:
-        context: ./infra/
-        dockerfile: ./php/Dockerfile
-      volumes:
-        - ./code:/var/www/html:cached
-        - ./infra/php/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
-        - ./infra/php/config/php.ini:/usr/local/etc/php/php.ini
-      depends_on:
-        - mysql
-      networks:
-        - symfony
+  symfony:
+    image: php-symfony:latest
+    build:
+      context: ./infra/
+      dockerfile: ./php/Dockerfile
+    volumes:
+      - ./code:/var/www/html:cached
+      - ./infra/php/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./infra/php/config/php.ini:/usr/local/etc/php/php.ini
+    depends_on:
+      - postgres
+    networks:
+      - symfony
 
-    mysql:
-      image: mysql
-      platform: linux/x86_64
-      command: --innodb-use-native-aio=${INNODB_USE_NATIVE_AIO:-1} --sql_mode=${SQL_MODE:-"ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"}
-      environment:
-        MYSQL_ROOT_PASSWORD: secret
-        MYSQL_DATABASE: symfony
-      ports:
-        - "3306:3306"
-      volumes:
-        - mysql:/var/lib/mysql:delegated
-      networks:
-        - symfony
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: logparser
+      POSTGRES_USER: zakiazhari
+      POSTGRES_PASSWORD: zaki
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - symfony
 
-    myadmin:
-      image: phpmyadmin/phpmyadmin:5
-      environment:
-        PMA_HOST: mysql
-      ports:
-        - "8080:80"
-      depends_on:
-        - mysql
-      networks:
-        - symfony
-      volumes:
-        - db_admin_data:/var/www/html
+  adminer:
+    image: adminer:4
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - symfony
 
-    mailcatcher:
-      networks:
-        - symfony
-      image: yappabe/mailcatcher
-      ports:
-        - 1025:1025
-        - 1080:1080
+  mailcatcher:
+    networks:
+      - symfony
+    image: yappabe/mailcatcher
+    ports:
+      - 1025:1025
+      - 1080:1080
+
 volumes:
-  db_admin_data:
-  mysql:
+  postgres_data:
+
 networks:
   symfony:
     name: symfony

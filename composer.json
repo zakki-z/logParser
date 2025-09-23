@@ -1,0 +1,7 @@
+{
+    "require": {
+        "pagerfanta/pagerfanta": "^4.7",
+        "knplabs/knp-snappy": "^1.5",
+        "mpdf/mpdf": "^8.2"
+    }
+}

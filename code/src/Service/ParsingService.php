@@ -12,15 +12,10 @@ class ParsingService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private FileRepository $fileRepository
     ){}
     public function parseLogFile(string $filePath, string $originalFilename, User $user): array
     {
         $fileSize = filesize($filePath);
-        $existingFile = $this->fileRepository->findOneBy([
-            'fileName' => $originalFilename,
-            'user' => $user
-        ]);
         $file = new File();
         $file->setFileName($originalFilename);
         $file->setFileNameTime(time().'.'.$originalFilename);
@@ -40,8 +35,7 @@ class ParsingService
         foreach ($lines as $line) {
             $line = trim($line);
             if (empty($line)) continue;
-
-            $pattern = '/^\[([^\]]+)\]\s+([^.]+)\.([A-Z]+):\s+(.+)$/';
+                $pattern= '/^\[([^\]]+)\]\s+([^.]+)\.([A-Z]+):\s+(.+)$/';
 
             if (preg_match($pattern, $line, $matches)) {
                 $logEntry = new LogEntry();

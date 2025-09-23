@@ -5,10 +5,12 @@ namespace App\Controller;
 use App\Repository\LogEntryRepository;
 use App\Service\SavingService;
 use App\Service\ParsingService;
+use Mpdf\Output\Destination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Mpdf\Mpdf;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -65,5 +67,19 @@ class LogController extends AbstractController
         $this->addFlash('success', 'All your logs cleared');
 
         return $this->redirectToRoute('log_index');
+    }
+    #[Route('/pdf', name: 'log_pdf', methods: ['GET'])]
+    public function pdf(LogEntryRepository $logRepository):Response
+    {
+        $mpdf = new Mpdf();
+        $content = "<h1>Head</h1>";
+        $content .= '<p> <b>test</b></p>';
+
+        $mpdf->writeHtml($content);
+        $logPdf = $mpdf->output('', Destination::STRING_RETURN);
+        return new Response($logPdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="log.pdf"'
+        ]);
     }
 }

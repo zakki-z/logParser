@@ -33,11 +33,6 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                    <input class="form-input w-full rounded-full border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2 focus:ring-offset-gray-50" placeholder="Search..." type="search" id="globalSearch"/>
-                </div>
-
                 {% if app.user %}
                     <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gray-300 flex items-center justify-center">
                         <span class="material-symbols-outlined text-gray-600">person</span>
@@ -159,7 +154,6 @@
                                 <select id="fileFilter" class="form-select rounded-md border-gray-300 text-sm">
                                     <option value="">All Sources</option>
                                 </select>
-
                                 <input type="date" id="dateFromFilter" class="form-input rounded-md border-gray-300 text-sm">
                                 <span class="text-gray-500">to</span>
                                 <input type="date" id="dateToFilter" class="form-input rounded-md border-gray-300 text-sm">
@@ -179,10 +173,18 @@
                                         Clear Everything
                                     </button>
                                 </form>
+                                <form action="{{ path('log_pdf') }}" method="get" style="display: inline;">
+                                    <button type="submit" class="px-3 py-2 text-sm font-medium text-green-700 bg-black-100 hover:bg-red-200 rounded-md">
+                                        Download PDF
+                                    </button>
+                                </form>
                             </div>
                         </div>
 
                         <!-- Log Table -->
+
+                <div>
+                    <ul class="pagination">
                         <div class="overflow-hidden rounded-lg border border-gray-200 bg-white">
                             <table class="min-w-full divide-y divide-gray-200" id="logTable">
                                 <thead class="bg-gray-50">
@@ -235,6 +237,8 @@
                                 </tbody>
                             </table>
                         </div>
+                    </ul>
+                </div>
                     </div>
                 {% else %}
                     <!-- Empty State-->
@@ -252,9 +256,9 @@
                         </div>
                     </div>
                 {% endif %}
-            </div>
         </main>
     </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

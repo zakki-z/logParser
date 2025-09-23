@@ -24,16 +24,20 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
       libzip-dev \
       wget \
       librabbitmq-dev \
+      libpq-dev \
     && pecl install amqp \
-    && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
+    && docker-php-ext-configure pdo_pgsql --with-pdo-pgsql \
+    && docker-php-ext-configure pgsql --with-pgsql \
     && docker-php-ext-configure intl \
     && docker-php-ext-install \
-      pdo_mysql \
+      pdo \
+      pdo_pgsql \
+      pgsql \
       sockets \
       intl \
       opcache \
       zip \
-    && docker-php-ext-enable amqp \
+    && docker-php-ext-enable amqp pdo_pgsql pgsql \
     && rm -rf /tmp/* \
     && rm -rf /var/list/apt/* \
     && rm -rf /var/lib/apt/lists/* \
