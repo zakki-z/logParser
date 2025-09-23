@@ -53,5 +53,6 @@ dist/
 *.rar
 
 # Local environment configuration
+code/.env
 .env.local
 .env.*.local
