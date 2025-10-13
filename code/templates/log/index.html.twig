@@ -1,0 +1,206 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log Entries{% endblock %}
+
+{% block body %}
+    <!--header-->
+    <header class="flex items-center justify-between border-b border-gray-300 px-10 py-4 bg-white shadow-sm">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Log Analyzer</h2>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            {% if app.user %}
+                <div class="flex items-center space-x-2">
+                    <span class="text-gray-700">
+                        <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-200">
+                            <a href="#" class="text-gray-800">User Info</a>
+                        </button>
+                    </span>
+                    <form action="{{ path('app_logout') }}" method="post" style="display: inline;">
+                        <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Log Entries</h1>
+                <a href="{{ path('app_upload') }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Upload Another File →
+                </a>
+            </div>
+            <!--filter-->
+            <form method="get" action="{{ path('app_log_view') }}" class="mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <!-- Search -->
+                    <div>
+                        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search:</label>
+                        <input
+                            type="text"
+                            id="search"
+                            name="search"
+                            value="{{ filters.search }}"
+                            placeholder="Search in messages..."
+                            class="form-input w-full rounded-md border-gray-300 text-sm"
+                        >
+                    </div>
+                    <!-- Type Filter -->
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Filter by Type:</label>
+                        <select id="type" name="type" onchange="this.form.submit()" class="form-select w-full rounded-md border-gray-300 text-sm">
+                            <option value="">All Types</option>
+                            <option value="ERROR" {% if filters.type == 'ERROR' %}selected{% endif %}>ERROR</option>
+                            <option value="WARNING" {% if filters.type == 'WARNING' %}selected{% endif %}>WARNING</option>
+                            <option value="INFO" {% if filters.type == 'INFO' %}selected{% endif %}>INFO</option>
+                            <option value="DEBUG" {% if filters.type == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                        </select>
+                    </div>
+                    <!-- Channel Filter -->
+                    <div>
+                        <label for="channel" class="block text-sm font-medium text-gray-700 mb-1">Filter by Channel:</label>
+                        <input
+                            type="text"
+                            id="channel"
+                            name="channel"
+                            value="{{ filters.channel }}"
+                            placeholder="Enter channel name..."
+                            class="form-input w-full rounded-md border-gray-300 text-sm"
+                            onchange="this.form.submit()"
+                        >
+                    </div>
+                    <!-- File Name Filter -->
+                    <div>
+                        <label for="fileName" class="block text-sm font-medium text-gray-700 mb-1">Filter by Source:</label>
+                        <input
+                            type="text"
+                            id="fileName"
+                            name="fileName"
+                            value="{{ filters.fileName }}"
+                            placeholder="Enter file name..."
+                            class="form-input w-full rounded-md border-gray-300 text-sm"
+                            onchange="this.form.submit()"
+                        >
+                    </div>
+                </div>
+                <!-- Date Range Filter -->
+                <div class="flex items-center gap-4 mb-4">
+                    <label class="text-sm font-medium text-gray-700">Filter by Date:</label>
+                    <span class="text-gray-500">from</span>
+                    <input
+                        type="date"
+                        name="dateFrom"
+                        value="{{ filters.dateFrom }}"
+                        onchange="this.form.submit()"
+                        class="form-input rounded-md border-gray-300 text-sm"
+                    >
+                    <span class="text-gray-500">to</span>
+                    <input
+                        type="date"
+                        name="dateTo"
+                        value="{{ filters.dateTo }}"
+                        onchange="this.form.submit()"
+                        class="form-input rounded-md border-gray-300 text-sm"
+                    >
+                    <a href="{{ path('app_log_view') }}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+                        Reset
+                    </a>
+                </div>
+            </form>
+            <!--buttons-->
+            <div class="flex items-center justify-end  mb-4 gap-[2vw]">
+                <p class="text-gray-600">Total entries: <strong class="text-gray-800">{{ pager.nbResults }}</strong></p>
+                <form action="{{ path('log_clear') }}" method="post" style="display: inline;">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition duration-200">
+                        Clear Everything
+                    </button>
+                </form>
+                <form action="{{ path('log_pdf') }}" method="get" style="display: inline;">
+                    <input type="hidden" name="type" value="{{ filters.type }}">
+                    <input type="hidden" name="channel" value="{{ filters.channel }}">
+                    <input type="hidden" name="fileName" value="{{ filters.fileName }}">
+                    <input type="hidden" name="search" value="{{ filters.search }}">
+                    <input type="hidden" name="dateFrom" value="{{ filters.dateFrom }}">
+                    <input type="hidden" name="dateTo" value="{{ filters.dateTo }}">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition duration-200">
+                        Download PDF
+                    </button>
+                </form>
+
+            </div>
+
+            <div class="table-responsive overflow-x-auto">
+                <table class="table table-striped table-hover w-full border border-gray-200">
+                    <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left">ID</th>
+                        <th class="px-4 py-3 text-left">Date</th>
+                        <th class="px-4 py-3 text-left">Channel</th>
+                        <th class="px-4 py-3 text-left">Type</th>
+                        <th class="px-4 py-3 text-left">File</th>
+                        <th class="px-4 py-3 text-left">Information</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in logEntries %}
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-4 py-3">{{ entry.id }}</td>
+                            <td class="px-4 py-3">{{ entry.date|date('Y-m-d H:i:s') }}</td>
+                            <td class="px-4 py-3">
+                                <span class="badge bg-secondary px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-800">{{ entry.channel }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if entry.type == 'ERROR' %}
+                                    <span class="badge bg-danger px-3 py-1 rounded-full text-sm bg-red-600 text-white">{{ entry.type }}</span>
+                                {% elseif entry.type == 'WARNING' %}
+                                    <span class="badge bg-warning px-3 py-1 rounded-full text-sm bg-yellow-500 text-gray-900">{{ entry.type }}</span>
+                                {% elseif entry.type == 'INFO' %}
+                                    <span class="badge bg-info px-3 py-1 rounded-full text-sm bg-blue-500 text-white">{{ entry.type }}</span>
+                                {% elseif entry.type == 'DEBUG' %}
+                                    <span class="badge bg-primary px-3 py-1 rounded-full text-sm bg-indigo-600 text-white">{{ entry.type }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-800">{{ entry.type }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">{{ entry.file.fileName }}</td>
+                            <td class="px-4 py-3">{{ entry.information }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                                No log entries were found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!--pager-->
+            <!--pager-->
+            <div class="flex justify-center mt-6">
+                <nav class="flex space-x-2">
+                    {% if pager.hasPreviousPage %}
+                        <a href="{{ path('app_log_view', filters|merge({'page': pager.previousPage})) }}"
+                           class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            « Previous
+                        </a>
+                    {% endif %}
+                    <span class="px-4 py-2 text-sm font-medium text-gray-700">
+            Page {{ pager.currentPage }} of {{ pager.nbPages }}
+        </span>
+
+                    {% if pager.hasNextPage %}
+                        <a href="{{ path('app_log_view', filters|merge({'page': pager.nextPage})) }}"
+                           class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Next »
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}

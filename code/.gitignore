@@ -1,0 +1,38 @@
+
+/assets/vendor/
+
+code/assets/vendor/@hotwired/stimulus/stimulus.index.js
+code/assets/vendor/@hotwired/turbo/turbo.index.js
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+# Keep frontend vendor files but ignore others
+!/assets/vendor/
+###< symfony/asset-mapper ###
+
+# Logs
+*.log
+/var/log/
+
+# Cache
+/var/cache/
+
+# Sessions
+/var/sessions/
+
+.env
