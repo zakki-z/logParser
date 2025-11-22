@@ -37,7 +37,7 @@ services:
     environment:
       POSTGRES_DB: changeME
       POSTGRES_USER: changeME
-      POSTGRES_PASSWORD: zaki
+      POSTGRES_PASSWORD: changeME
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
